@@ -1,0 +1,23 @@
+Data Set
+
+#weight and height amounts have been shifted in order to work with easier inputs
+
+data = np.array([
+  [-2, -1],  # Alice - 133 pounds, 65 inches
+  [25, 6],   # Bob 160 - pounds, 72 inches
+  [17, 4],   # Charlie - 152 pounds, 70 inches
+  [-15, -6], # Diana - 120 pounds, 60 inches
+])
+
+all_y_trues = np.array([
+  1, # Alice
+  0, # Bob
+  0, # Charlie
+  1, # Diana
+])
+
+
+New Predictions
+
+sara = [-15, -6] # 128 pounds, 63 inches
+tom = [15, 6] # 155 pounds, 68 inches

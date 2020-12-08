@@ -38,9 +38,16 @@ def selectFile():
     for clip in streamerList:
         print(str(i) + "." + str(clip))
         i += 1
-    clipNum = input("\nSelect a clip to predict category: ")
-    print("**********************************************************\n") 
-    clipPath = datasetPath + str(streamers[int(streamerNum)-1]) + "/" + str(streamerList[int(clipNum)-1])
+    clipNum = input("\nSelect a clip to predict category or enter 'a' to process all clips: ")
+    clipPath = []
+    if clipNum == 'a':
+        count = 0
+        for i in streamerList:
+            clipPath.append(datasetPath + str(streamers[int(streamerNum)-1]) + "/" + str(streamerList[int(count)])) 
+            count += 1;
+    else:
+        clipPath.append(datasetPath + str(streamers[int(streamerNum)-1]) + "/" + str(streamerList[int(clipNum)-1]))
+    print("**********************************************************\n")
     #SELECT CLIP END**************************************************************************
 
     return clipPath
@@ -48,109 +55,118 @@ def selectFile():
 
 
 def processFile(clipPath):
-    if path.exists(clipPath):
-        #can specify txt encoding type in argument e.g. encoding="utf8"
-        f = open(clipPath,"r",errors='ignore')
+    for p in clipPath: 
+        if path.exists(p):
+            #can specify txt encoding type in argument e.g. encoding="utf8"
+            f = open(p,"r",errors='ignore')
 
-        #empty dictionary for words from file
-        d=dict()
+            allData = []
 
-        #dictionary to hold results 
-        dataDict = {
-            "url" : "",
-            "funny" : 0,
-            "epic" : 0,
-            "sad" : 0
-        }
-        
-        #categories - f - funny, e - epic, s - sad
-        #list of "keywords"
-        f_kw = ["LOL", "LUL", "OMEGALUL", "LOOL", "LOOOL" "LOOOOL", "HAHA", "ROFL", "xD", "LMAO","KEKW", "LULW"]
-        #data["funny"] += 0
-        
-        e_kw = ["WOW", "POGCHAMP", "POG", "POGU", "POGGERS","HOLY", "OMG", "NUTS", "INSANE", "CLIP", "WTF", "EZ", "CLIP"]
-        #data["epic"] += 0
+            #empty dictionary for words from file
+            d=dict()
 
-        s_kw = ["BIBLETHUMP", "D:", "NOOO", "NOTLIKETHIS", "PEEPOSAD"]
-        #data["sad"] += 0
-        
-        for line in f:
-            line = line.strip()
-            #line = line.upper()
-            words = line.split(" ")
-            for word in words:
-                if word in d:
-                    #increment + 1 if word exists
-                    d[word] = d[word] + 1
-                else:
-                    #add word into dictionary and set val to 1  
-                    d[word] = 1
-                    
-        #store url in dictionary
-        link = next(iter(d))
-        dataDict["url"] = link
-        
-        for key in list(d.keys()):
-            #print( "LUL" == "LUL" ) evals to true
-            if str(key).upper() in f_kw:
-                dataDict["funny"] += 1
-                #print("Funny keyword detected: " + str(key ))
+            #dictionary to hold results 
+            dataDict = {
+                "url" : "",
+                "funny" : 0,
+                "epic" : 0,
+                "sad" : 0
+            }
+            
+            #categories - f - funny, e - epic, s - sad
+            #list of "keywords"
+            f_kw = ["LOL", "LUL", "OMEGALUL", "LOOL", "LOOOL" "LOOOOL", "HAHA", "ROFL", "xD", "LMAO","KEKW", "LULW"]
+            #data["funny"] += 0
+            
+            e_kw = ["WOW", "POGCHAMP", "POG", "POGU", "POGGERS","HOLY", "OMG", "NUTS", "INSANE", "CLIP", "WTF", "EZ", "CLIP"]
+            #data["epic"] += 0
 
-            elif str(key).upper() in e_kw:
-                dataDict["epic"] += 1
-                #print("Epic keyword detected: " + str(key ))
+            s_kw = ["BIBLETHUMP", "D:", "NOOO", "NOTLIKETHIS", "PEEPOSAD"]
+            #data["sad"] += 0
+            
+            for line in f:
+                line = line.strip()
+                #line = line.upper()
+                words = line.split(" ")
+                for word in words:
+                    if word in d:
+                        #increment + 1 if word exists
+                        d[word] = d[word] + 1
+                    else:
+                        #add word into dictionary and set val to 1  
+                        d[word] = 1
+                        
+            #store url in dictionary
+            link = next(iter(d))
+            dataDict["url"] = link
+            
+            for key in list(d.keys()):
+                #print( "LUL" == "LUL" ) evals to true
+                if str(key).upper() in f_kw:
+                    dataDict["funny"] += 1
+                    #print("Funny keyword detected: " + str(key ))
 
-            elif str(key).upper() in s_kw:
-                dataDict["sad"] += 1
-                #print("Sad keyword detected: " + str(key ))
+                elif str(key).upper() in e_kw:
+                    dataDict["epic"] += 1
+                    #print("Epic keyword detected: " + str(key ))
 
-        
+                elif str(key).upper() in s_kw:
+                    dataDict["sad"] += 1
+                    #print("Sad keyword detected: " + str(key ))
+
+            
+            allData.append(dataDict)
+            
+        else:
+            print("File does not exist")
         f.close()
-        
-    else:
-        print("File does not exist")
-
-    return dataDict
+        print(allData)
+    return allData
 
 
 
 def predictCategory(data):
-    category = ""
-    for keyWords in data:
-        if data.get("funny") > data.get("epic") and data.get("funny") > data.get("sad"):
-             category = "funny." 
-        elif data.get("epic") > data.get("funny") and data.get("epic") > data.get("sad"):
-            category = "epic."
-        elif data.get("sad") > data.get("funny") and data.get("sad") > data.get("epic"):
-            category = "sad."
-        elif data.get("funny") > 0 and data.get("funny") >= data.get("epic"):
-            category = "funny and epic"
-        elif data.get("funny") > 0 and data.get("funny") >= data.get("sad"):
-            category = "funny and sad"
-        elif data.get("funny") >= data.get("epic") and data.get("epic") >= data.get("sad"):
-            category = "funny, epic, and sad- a trifecta!"
-        elif data.get("epic") > 0 and data.get("epic") >= data.get("sad"):
-            category = "epic and sad"
+    print("Predict catagory\n")
+    print(data)
+    for d in data:
+        category = ""
+        for keyWords in d:
+            if d.get("funny") > d.get("epic") and d.get("funny") > d.get("sad"):
+                 category = "funny." 
+            elif d.get("epic") > d.get("funny") and d.get("epic") > d.get("sad"):
+                category = "epic."
+            elif d.get("sad") > d.get("funny") and d.get("sad") > d.get("epic"):
+                category = "sad."
+            elif d.get("funny") > 0 and d.get("funny") >= d.get("epic"):
+                category = "funny and epic"
+            elif d.get("funny") > 0 and d.get("funny") >= d.get("sad"):
+                category = "funny and sad"
+            elif d.get("funny") >= d.get("epic") and d.get("epic") >= d.get("sad"):
+                category = "funny, epic, and sad- a trifecta!"
+            elif d.get("epic") > 0 and d.get("epic") >= d.get("sad"):
+                category = "epic and sad"
+            
+            '''
+            print("This video is likely to be", category,
+                     "\nfunny: " + str(d.get("funny")),
+                     "\nepic: " + str(d.get("epic")),
+                     "\nsad: " + str(d.get("sad")),
+                     "\nURL:" + d["url"]
+            )
+            '''
+        print("\nThis video is likely to be", category,"\n")
         
-        '''
-        print("This video is likely to be", category,
-                 "\nfunny: " + str(data.get("funny")),
-                 "\nepic: " + str(data.get("epic")),
-                 "\nsad: " + str(data.get("sad")),
-                 "\nURL:" + data["url"]
-        )
-        '''
-    print("This video is likely to be", category)
+        
+        openLink = input("Watch clip in a new browser tab?(y/n): ")
+         
+        while openLink.lower() != 'y' and openLink.lower() != 'n':
+            print("\n\nInvalid choice. Please enter either y or n.")
+            openLink = input("Watch clip on a new browser tab?(y/n): ")
 
-    openLink = input("Watch clip in a new browser tab?(y/n): ")
-     
-    while openLink.lower() != 'y' and openLink.lower() != 'n':
-        print("\nInvalid choice. Please enter either y or n.")
-        openLink = input("Watch clip on a new browser tab?(y/n): ")
-
-    if openLink.lower() == "y":
-        print("\n\nOpening clip in new browser tab...")
-        webbrowser.open_new_tab(data.get("url"))
+        if openLink.lower() == "y":
+            print("\n\nOpening clip in new browser tab...")
+            webbrowser.open_new_tab(d.get("url"))
+        
 
 
         
@@ -309,9 +325,9 @@ def menu():
     print("**********************************************************") 
     while selection != 1 and selection != 2 and selection != 3:
         print("\nInvalid selection\n")
-        print("1. Twitch Sample Run")
-        print("2. Simple Neural Network Sample")
-        print("3. Diabetes Neural Network Sample")
+        print("1. Twitch Neural Network")
+        print("2. Simple Neural Network [Sample]")
+        print("3. Diabetes Neural Network [Sample]")
         selection = int(input("Enter selection: "))
         selection = int(selection)
     
